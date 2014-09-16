@@ -1,5 +1,6 @@
+%Created for Lab 3
 function neatoEncoderEventListener(handle,event)
-disp('entering ISR');
+%disp('entering ISR');
 global prevTime;
 global prevDistLeft;
 global prevDistRight;
@@ -9,7 +10,7 @@ global th;
 global robot;
 global index;
 
-width = .235; %in cm
+width = .235; %in meters
 
 currTime = event.data.header.stamp.secs +(event.data.header.stamp.nsecs/1000000000);
 dt = currTime - prevTime;

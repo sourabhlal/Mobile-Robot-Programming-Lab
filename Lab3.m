@@ -1,3 +1,4 @@
+%Drive the robot in a figure 8 and plot the path traveled
 function out = Lab3(r)
 global robot; 
 robot = r;
@@ -28,12 +29,13 @@ while toc(time) < tf
  
     vr = (.3*kv + .14125*kv/ks*sin(toc(time)*kv/(2*ks)));
     vl = (.3*kv - .14125*kv/ks*sin(toc(time)*kv/(2*ks)));
-    disp([vr vl]);
+    %disp([vr vl]);
     robot.sendVelocity(vl,vr);
     pause(.001);
 end
     robot.sendVelocity(0,0);
     pause(1);
-
-
+    disp('Distance from start in meters');
+    disp(sqrt(power(x(end),2)+power(y(end),2)));
+    
 end
