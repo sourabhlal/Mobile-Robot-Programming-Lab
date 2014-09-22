@@ -3,11 +3,11 @@ vmax = .25;
 amax = .75;
 dist = 1;
 
-kp = 0;
-kd = 0;
-ki = 0;
+kp = 2;
+kd = 0.1;
+ki = 0.1;
 
-tDelay = .2;
+tDelay = .175;
 
 index = 2;
 
@@ -57,7 +57,8 @@ while toc(time) < 5
     pause(.01);
 
 end
-  
+disp(error(end));  
+
 figure;
 subplot(2,2,1);
 plot(graphTime,d);
