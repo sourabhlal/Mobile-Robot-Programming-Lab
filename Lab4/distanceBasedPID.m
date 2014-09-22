@@ -1,8 +1,8 @@
 %Lab 4
 function distanceBasedPID(robot)
 
-kp = 5;
-kd = 3;
+kp = 6;
+kd = 4;
 ki = 0.1;
 
 startL = robot.encoders.data.left;
@@ -14,13 +14,13 @@ ur = 0; %modified right speed
 
 index = 2;
 
-expectedDist = 1; %1 meter
+expectedDist = 0.1; %1 meter
 
 time = tic;
 iEr = 0;
 iEl = 0;
 dt = 0;
-while toc(time) < 3
+while toc(time) < 6
     ul = min(.3,ul);
     ur = min(.3,ur);
     ul = max(-.3,ul);
@@ -43,15 +43,15 @@ while toc(time) < 3
     dEl = (el(index) - el(index-1))/dt;
     
     %calc integral(error)
-    iEr = iEr + er(index)*dt;
-    iEl = iEl + el(index)*dt;
+    iEr = er(index)*dt;
+    iEl = el(index)*dt;
     
     %update speeds
     ul = kp*el(index) + kd*dEl + ki*iEl;
     ur = kp*er(index) + kd*dEr + ki*iEr;
     
     index = index+1;
-    pause(.005);
+    pause(.01);
     
 end
 plot(el);

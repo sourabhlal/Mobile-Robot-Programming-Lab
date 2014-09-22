@@ -1,13 +1,12 @@
-function trapTest(robot)
+function trapTest(robot,controlMethod)
 vmax = .25;
 amax = .75;
 dist = 1;
+tDelay = .22;
 
 kp = 2;
-kd = 0.1;
+kd = 0.2;
 ki = 0.1;
-
-tDelay = .175;
 
 index = 2;
 
@@ -20,7 +19,7 @@ start = robot.encoders.data.left;
 
 prevTime=0;
 
-while toc(time) < 5
+while toc(time) < 6
     t =  toc(time) - tDelay;
     t = max(0,t);
     v(index) = trapezoidalVelocityProfile(toc(time), amax, vmax,dist, 1);
@@ -38,14 +37,24 @@ while toc(time) < 5
     d(index) = (robot.encoders.data.left - start)/1000;
     
     error(index) = intP(index) - d(index);
-        
-    %calc d/dt(error)
-    dE = (error(index) - error(index-1))/dt;
+    
+    if(controlMethod ~= 0)
+        %calc d/dt(error)
+        dE = (error(index) - error(index-1))/dt;
   
-    %calc integral(error)
-    iE = iE + error(index)*dt;
+        %calc integral(error)
+        iE = error(index)*dt;
    
-    u = kp*error(index) + kd*dE + ki*iE;
+        u = kp*error(index) + kd*dE + ki*iE;
+        if (index<=2)
+            disp('feedback + feedforward');
+        end
+    else
+        u = 0;
+        if (index<=2)
+            disp('feedforward');
+        end
+    end
     sendV = v(index) + u;
     sendV  = min(.3,sendV);
     sendV  = min(.3,sendV);
