@@ -1,6 +1,6 @@
 function trapTest(robot)
-vmax = .2;
-amax = .6;
+vmax = .25;
+amax = .75;
 dist = 1;
 
 kp = 0;
@@ -15,10 +15,12 @@ time = tic;
 
 iE = 0;
 int = 0;
-dt = 0;
+
 start = robot.encoders.data.left;
 
-while toc(time) < 2
+prevTime=0;
+
+while toc(time) < 5
     t =  toc(time) - tDelay;
     t = max(0,t);
     v(index) = trapezoidalVelocityProfile(toc(time), amax, vmax,dist, 1);
@@ -26,9 +28,11 @@ while toc(time) < 2
     graphTime(index) = toc(time);
     
     vref = trapezoidalVelocityProfile(t, amax, vmax,dist, 1);
-    
-    dt = toc(time) - dt;
+ 
+    dt = toc(time) - prevTime;
+    prevTime = toc(time);
     int = int + vref*dt;
+
     intP(index) = int;
     
     d(index) = (robot.encoders.data.left - start)/1000;
@@ -54,18 +58,15 @@ while toc(time) < 2
 
 end
   
-    figure;
-    subplot(2,2,1);
-    plot(graphTime,d);
-    hold on;
-    plot(graphTime,intP);
-    grid on;
-    subplot(2,2,2);
-    plot(graphTime,error);
-
-
-
-
+figure;
+subplot(2,2,1);
+plot(graphTime,d);
+hold on;
+plot(graphTime,intP);
+grid on;
+subplot(2,2,2);
+plot(graphTime,error);
+grid on;
 
 robot.sendVelocity(0,0);
 end
