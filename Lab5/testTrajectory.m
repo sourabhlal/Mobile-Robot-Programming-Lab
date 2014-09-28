@@ -1,8 +1,9 @@
 %main function for Lab 5
 function testTrajectory(robot)
-    obj = figure8ReferenceControl(.4,.5,0);
+    obj = figure8ReferenceControl(.5,.5,0);
     
     totalTime = getTrajectoryDuration(obj);
+   
     time = tic;
     while toc(time) < totalTime
         [V, w] = computeControl(obj, toc(time));

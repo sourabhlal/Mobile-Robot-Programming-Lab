@@ -31,7 +31,7 @@ classdef robotTrajectory < handle
             dt = maxTime/trajectory.numSamples;
             
             for index = 1:trajectory.numSamples                
-                currTime = (index/trajectory.numSamples)*maxTime;
+                currTime = dt*index;
                 [V,w] = computeControl(obj, currTime);
                 th = th + w*dt/2;
                 x = x + V*cos(th)*dt;
