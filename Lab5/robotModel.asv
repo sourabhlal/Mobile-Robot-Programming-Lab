@@ -16,7 +16,7 @@ classdef robotModel < handle
         
         function [V, w] = vlvrToVw(rm,vl, vr)
             V = (vr + vl)/2;
-            w = atan((vr - vl)/rm.W);
+            w = (vr - vl)/rm.W;
         end
         
         function [vl, vr] = VwTovlvr(rm,V, w)
