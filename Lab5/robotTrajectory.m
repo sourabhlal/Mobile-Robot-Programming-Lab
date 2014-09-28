@@ -15,7 +15,8 @@ classdef robotTrajectory < handle
         function pose = getPoseAtTime(trajectory, obj, t)
             maxTime = getTrajectoryDuration(obj);
             index = floor(trajectory.numSamples*t/maxTime);
-
+            index = max(1,index);
+            
             x = trajectory.pose(1,index);
             y = trajectory.pose(2,index);
             th = trajectory.pose(3,index);
