@@ -14,8 +14,6 @@ classdef figure8ReferenceControl < handle
            obj.Kv = Kv;
         end
         
-        %assumes timeNow starts at zero
-        %ignore tPause for now
         function [V, w] = computeControl (obj, timeNow)
             if timeNow < 4*pi*obj.Ks/obj.Kv
                 vr = .3*obj.Kv + .14125*obj.Kv/obj.Ks*sin(timeNow*obj.Kv/(2*obj.Ks)); 

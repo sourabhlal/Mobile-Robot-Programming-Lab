@@ -1,30 +1,124 @@
 %main function for Lab 5
 function testTrajectory(robot)
-    obj = figure8ReferenceControl(.5,.5,0);
+    kpx = 1;
+    kdx = .2;
+    kppsi = .5;   
+    kdpsi = .1;
+    kpth = 2;   
+    kdth = .2;
+    
+    obj = figure8ReferenceControl(.5,.5,1.5);
     
     totalTime = getTrajectoryDuration(obj);
-    time = tic;
-    while toc(time) < totalTime
-        [V, w] = computeControl(obj, toc(time));
-        rm = robotModel(.30);
-        [vl, vr] = VwTovlvr(rm,V,w);
-        robot.sendVelocity(vl,vr);
-        pause(.01);
-    end
-    
-    
+   
+    %predicted path
     maxTime = getTrajectoryDuration(obj);
     trajectory = robotTrajectory(1000);
     calcPose(trajectory,obj);
     for i = 1:1000
         pose = getPoseAtTime(trajectory,obj, i/1000*maxTime);
-        x(i) = pose(1,1);
-        y(i) = pose(2,1);
+        xp(i) = pose(1,1);
+        yp(i) = pose(2,1);
         th(i) = pose(3,1);
-        %disp([x(i), y(i), th(i)]);
     end
-    plot(y,x);
     
+    prevDistLeft = robot.encoders.data.left;
+    prevDistRight = robot.encoders.data.right;
+    th=0;
+    x(1) = 0;
+    y(1) = 0;
+    width = .237;
+
+    time = tic;
+    prevTime = toc(time);
+    index =1;
+    while toc(time) < totalTime
+        currTime = toc(time);
+        dt = currTime - prevTime;
+
+        currDistRight = robot.encoders.data.right;
+        dSr = (currDistRight - prevDistRight)/1000; 
+        prevDistRight = currDistRight;
+
+        currDistLeft = robot.encoders.data.left;
+        dSl = (currDistLeft - prevDistLeft)/1000; 
+        prevDistLeft = currDistLeft;
+
+        dth = (dSr - dSl)/width;
+        dS = (dSr+dSl)/2;
+
+        th = th + dth/2;
+        x(index+1) = x(index) + (dS/dt)*cos(th)*dt;
+        y(index+1) = y(index) + (dS/dt)*sin(th)*dt;
+        th = th + dth/2;
+
+        targetPose = getPoseAtTime(trajectory,obj, currTime);
+       
+        Twb = inv([cos(th) -sin(th) x(index+1) ; sin(th) cos(th) y(index+1) ; 0 0 1]);
+        raw = [targetPose(1,1) ; targetPose(2,1) ; 1];
+        rab = Twb*raw;
+        xError(index+1) = rab(1,1);
+        yError(index+1) = rab(2,1);
+
+        %calc angle between robot and predicted pose
+        Taw = [cos(targetPose(3,1)) -sin(targetPose(3,1)) targetPose(1,1) ; sin(targetPose(3,1)) cos(targetPose(3,1)) targetPose(2,1) ; 0 0 1];
+        Tab = Twb*Taw;
+        thError(index+1) = atan2(Tab(2,1),Tab(1,1));
+        
+        psiError(index+1) = atan2(yError(index+1),xError(index+1));
+        
+        rabx_dt = (xError(index+1)-xError(index))*dt; 
+        %raby_dt = (yError(index+1)-yError(index))*dt;
+        dpsi_dt = (psiError(index+1)-psiError(index))*dt;
+        dth_dt = (thError(index+1)-thError(index))*dt;
+        
+        mag = 100*sqrt(xError(index+1)*xError(index+1)+yError(index+1)*yError(index+1));
+        
+        [V, w] = computeControl(obj, toc(time));
+        V = V + kpx*xError(index+1) + kdx*rabx_dt;
+        if xError(index+1) > 0 
+            w = w + mag*kppsi*psiError(index+1) + mag*kdpsi*dpsi_dt + kpth*thError(index+1) + kdth*dth_dt;
+        else
+            w = w + kpth*thError(index+1) + kdth*dth_dt;    
+        end
+        
+        rm = robotModel(width);
+        [vl, vr] = VwTovlvr(rm,V,w);
+        
+        vl  = min(.3,vl);
+        vr  = min(.3,vr);
+        vl  = max(-.3,vl);
+        vr  = max(-.3,vr);
+
+        robot.sendVelocity(vl,vr);
+       
+        index = index+1;
+        prevTime = currTime;
+        pause(.01);
+    end
+    
+    figure(1);
+    subplot(2,2,1)
+    plot(y,x,'r');
+    hold on;
+    plot(yp,xp);
+    subplot(2,2,2)
+    plot(yError);
+    grid on;
+    subplot(2,2,3)
+    plot(thError);
+    grid on;
+    subplot(2,2,4)
+    plot(psiError);
+    grid on;
+    
+    
+    disp(sqrt(xError(end)*xError(end) + yError(end)*yError(end)
     robot.sendVelocity(0,0);
     %clear classes;
 end
+
+
+
+
+
