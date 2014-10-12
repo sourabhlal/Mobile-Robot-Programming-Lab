@@ -13,7 +13,7 @@ classdef mrplSystem < handle
         end
         
         
-        function executeTrajectory(obj,xf,yf,thf,robot,pauseTime)
+        function executeTrajectory(xf,yf,thf,robot,pauseTime)
             kpx = 1.5;
             kdx = .1;
 
@@ -25,15 +25,16 @@ classdef mrplSystem < handle
 
             width = .235;
 
-            refPose = getPoseAtTime(obj.RobotReference);
-            xi = refPose(1,1) - obj.RobotEstimate.x;
-            yi = refPose(1,2) - obj.RobotEstimate.y;
-            thi = refPose(1,3) - obj.RobotEstimate.th;
+            refPose = getPoseAtTime(RobotReference);
+            xi = refPose(1,1) - RobotEstimate.x;
+            yi = refPose(1,2) - RobotEstimate.y;
+            thi = refPose(1,3) - RobotEstimate.th;
 
             curve = cubicSpiral.planTrajectory(xf-xi,yf-yi,thf-thi,1);
             planVelocities(curve,.25);
 
             time = tic();
+            prevTime = 0;
             completionTime = curve.timeArray(end);
             index=1;
             th=0;
@@ -88,10 +89,13 @@ classdef mrplSystem < handle
                 robot.sendVelocity(vl,vr);
 
                 index = index+1;
-                
+                prevTime = currTime;
+
                 pause(.01);
             end
         end
-    end
+
+
+    
 end
 
