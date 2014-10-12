@@ -1,16 +1,29 @@
-function Lab6(robot)
+function Lab7(robot)
     global RobotEstimate ;
     global RobotReference ;
     RobotEstimate = estRobot(0,0,0,robot);
-    RobotReference = refRobot();
+    RobotReference = refRobot(...);
     
-    executeTrajectory(.25,.25,0,robot,1,5);
-    executeTrajectory(-.5,-.5,-pi/2.0,robot,2,5);
-    executeTrajectory(-.25,.25,pi/2.0,robot,3,5);
-    
+    executeTrajectory(.25,.25,0,robot,2);
+    executeTrajectory(-.5+XE,-.5+YE,-pi/2.0+TE,robot,2);
+    executeTrajectory(-.25+XE,.25+YE,pi/2.0+TE,robot,2);
+    figure(2);
+    plot(RobotEstimate.x,RobotEstimate.y);
 end
 
-function [XE YE] = executeTrajectory(xf,yf,thf,robot,run,pauseTime)
+
+function executeTrajectory(xf,yf,thf,robot,pauseTime)
+    global RobotEstimate;
+    global RobotReference;
+    
+    XE = RobotReference.x(end) - RobotEstimate.x(end);
+    YE = RobotReference.y(end) - RobotEstimate.y(end);
+    TE = RobotReference.th(end) - RobotEstimate.th(end);
+    
+    xf = xf-XE;
+    yf = yf-YE;
+    thf = thf-TE;
+
     kpx = 1.5;
     kdx = .1;
 
@@ -22,20 +35,12 @@ function [XE YE] = executeTrajectory(xf,yf,thf,robot,run,pauseTime)
 
     width = .235;
     curve = cubicSpiral.planTrajectory(xf,yf,thf,1);
-    planVelocities(curve,.29);
+    planVelocities(curve,.20);
+    
     
     for i = 1: length(curve.poseArray)
        xPredict(i) = curve.poseArray(1,i);
        yPredict(i) = curve.poseArray(2,i);
-       if run == 1
-           xy0 = [xPredict(i);yPredict(i);1];
-       elseif run == 2
-           xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-       elseif run == 3
-           xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-       end
-       xP(i) = xy0(1,1);
-       yP(i) = xy0(2,1);
     end
     
     prevDistRight = robot.encoders.data.right;
@@ -76,15 +81,6 @@ function [XE YE] = executeTrajectory(xf,yf,thf,robot,run,pauseTime)
         xActual(index+1) = xActual(index) + (dS/dt)*cos(th)*dt;
         yActual(index+1) = yActual(index) + (dS/dt)*sin(th)*dt;
         th = th + dth/2;
-        if run == 1
-            xy0 = [xActual(index);yActual(index);1];
-        elseif run == 2
-            xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xActual(index);yActual(index);1];
-        elseif run == 3
-            xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xActual(index);yActual(index);1];
-        end
-        xA(index) = xy0(1,1);
-        yA(index) = xy0(2,1);
         
         Twb = inv([cos(th) -sin(th) xActual(index+1) ; sin(th) cos(th) yActual(index+1) ; 0 0 1]);
         raw = [targetPose(1,1) ; targetPose(2,1) ; 1];
@@ -129,25 +125,5 @@ function [XE YE] = executeTrajectory(xf,yf,thf,robot,run,pauseTime)
 
         pause(.01);
     end
-    
-    figure(1);
-    subplot(2,3,run);
-    plot(xPredict,yPredict);
-    hold on;
-    plot(xActual,yActual,'r');
-    axis([-.5 .5 -.5 .5]);
-    grid on;
-    
-    subplot(2,3,4);
-    hold on;
-    plot(xP,yP);
-    plot(xA,yA,'r');
-    axis([-.5 .5 -.5 .5]);
-    grid on;
-    
-    robot.sendVelocity(0,0);
-    XE = xError(end);
-    YE = yError(end);
-    
     
 end

@@ -15,9 +15,11 @@ function neatoEncoderEventListener(handle,event)
     dth = (dSr - dSl)/width;
     dS = (dSr+dSl)/2;
 
+    i = RobotEstimate.index;
     RobotEstimate.th = RobotEstimate.th + dth/2;
-    RobotEstimate.x = RobotEstimate.x + (dS)*cos(RobotEstimate.th);
-    RobotEstimate.y = RobotEstimate.y + (dS)*sin(RobotEstimate.th);
+    RobotEstimate.x(i+1) = RobotEstimate.x(i) + (dS)*cos(RobotEstimate.th);
+    RobotEstimate.y(i+1) = RobotEstimate.y(i) + (dS)*sin(RobotEstimate.th);
     RobotEstimate.th = RobotEstimate.th + dth/2;
 
+    RobotEstimate.index = RobotEstimate.index+1;
 end
