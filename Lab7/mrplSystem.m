@@ -12,7 +12,6 @@ classdef mrplSystem < handle
             obj.RobotEstimate = est;
         end
         
-        
         function executeTrajectory(obj,xf,yf,thf,robot,pauseTime)
             kpx = 1.5;
             kdx = .1;
