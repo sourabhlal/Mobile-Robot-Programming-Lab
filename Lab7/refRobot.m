@@ -7,6 +7,8 @@ classdef refRobot
         predictedX;
         predictedY;
         predictedT;
+        xy;
+        transform;
     end
     
     methods
@@ -18,6 +20,8 @@ classdef refRobot
             obj.predictedX = [];
             obj.predictedY = [];
             obj.predictedT = [];
+            obj.xy = [];
+            obj.transform = [1,0,0;0,1,0;0,0,1];
         end
         
         function [] = addCurve(obj, newCurve)
@@ -34,6 +38,15 @@ classdef refRobot
             obj.predictedY = [obj.predictedY ; pY];
             obj.predictedT = [obj.predictedT ; pT];
             
-        end
+            currentCurveValue = length(obj.curve);
+            if currentCurveValue ~= 1
+                %obj.transform                
+                %xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xPredict(i);yPredict(i);1];
+                %xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xPredict(i);yPredict(i);1];
+                
+                
+            end
+            obj.xy = obj.transform*[obj.predictedX(1);obj.predictedY(i);1];           
+        end   
     end
 end
