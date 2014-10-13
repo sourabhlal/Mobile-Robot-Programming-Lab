@@ -3,10 +3,12 @@ classdef refRobot
         x;
         y;
         t;
+        xprev;
+        yprev;
+        tprev;
         curve;
         predictedX;
         predictedY;
-        predictedT;
         xy;
         transform;
     end
@@ -19,34 +21,29 @@ classdef refRobot
             obj.curve = [];
             obj.predictedX = [];
             obj.predictedY = [];
-            obj.predictedT = [];
             obj.xy = [];
             obj.transform = [1,0,0;0,1,0;0,0,1];
         end
         
-        function [] = addCurve(obj, newCurve)
+        function [] = addCurve(obj, newCurve, newx,newy,newt)
+            obj.x = newx;
+            obj.y = newy;
+            obj.t = newt;
             obj.curve(end+1) = newCurve;
-            
-            %obj.curve.planVelocities(.25);
-            for i = 1: length(obj.curve(1).poseArray)
-               pX(i) = newCurve.poseArray(1,i);
-               pY(i) = newCurve.poseArray(2,i);
-               pT(i) = newCurve.poseArray(3,i);
-            end
-            
-            obj.predictedX = [obj.predictedX ; pX];
-            obj.predictedY = [obj.predictedY ; pY];
-            obj.predictedT = [obj.predictedT ; pT];
-            
             currentCurveValue = length(obj.curve);
             if currentCurveValue ~= 1
-                %obj.transform                
-                %xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-                %xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-                
-                
+                obj.transform = obj.transform * [cos(obj.tprev),-sin(obj.tprev),obj.xprev; sin(obj.tprev), cos(obj.tprev), obj.yprev;0,0,1];
             end
-            obj.xy = obj.transform*[obj.predictedX(1);obj.predictedY(i);1];           
+            for i = 1: length(newCurve.poseArray)
+               pX(i) = newCurve.poseArray(1,i);
+               pY(i) = newCurve.poseArray(2,i);      
+               obj.xy(i) = obj.transform*[obj.pX(i);obj.pY(i);1];
+            end
+            obj.predictedX = [obj.predictedX ; obj.xy(1,:)];
+            obj.predictedY = [obj.predictedY ; obj.xy(2,:)];
+            obj.xprev = obj.x;
+            obj.yprev = obj.y;
+            obj.tprev = obj.t;
         end   
     end
 end

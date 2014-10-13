@@ -2,7 +2,7 @@ function Lab7(robot)
     global RobotEstimate ;
     global RobotReference ;
     RobotEstimate = estRobot(0,0,0,robot);
-    RobotReference = refRobot(...);
+    RobotReference = refRobot(0,0,0);
     
     executeTrajectory(.25,.25,0,robot,2);
     executeTrajectory(-.5+XE,-.5+YE,-pi/2.0+TE,robot,2);
@@ -16,9 +16,9 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     global RobotEstimate;
     global RobotReference;
     
-    XE = RobotReference.x(end) - RobotEstimate.x(end);
-    YE = RobotReference.y(end) - RobotEstimate.y(end);
-    TE = RobotReference.th(end) - RobotEstimate.th(end);
+    XE = RobotReference.x - RobotEstimate.x(end);
+    YE = RobotReference.y - RobotEstimate.y(end);
+    TE = RobotReference.t - RobotEstimate.th(end);
     
     xf = xf-XE;
     yf = yf-YE;
@@ -36,7 +36,7 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     width = .235;
     curve = cubicSpiral.planTrajectory(xf,yf,thf,1);
     planVelocities(curve,.20);
-    
+    RobotReference.addCurve(curve, xf, yf, thf);
     
     for i = 1: length(curve.poseArray)
        xPredict(i) = curve.poseArray(1,i);
