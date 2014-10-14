@@ -1,29 +1,64 @@
 function Lab7(robot)
     global RobotEstimate ;
-    global RobotReference ;
+    %global RobotReference ;
     RobotEstimate = estRobot(0,0,0,robot);
-    RobotReference = refRobot(0,0,0);
+    %RobotReference = refRobot();
     
     executeTrajectory(.25,.25,0,robot,2);
-    executeTrajectory(-.5+XE,-.5+YE,-pi/2.0+TE,robot,2);
-    executeTrajectory(-.25+XE,.25+YE,pi/2.0+TE,robot,2);
-    figure(2);
-    plot(RobotEstimate.x,RobotEstimate.y);
+    XE = RobotEstimate.x(end) - .25;
+    YE = RobotEstimate.y(end) -.25;
+    TE = RobotEstimate.th(end) - 0;
+    disp([XE,YE].*100);
+    executeTrajectory(-.5-XE,-.5-YE,-pi/2.0-TE,robot,2);
+    XE = RobotEstimate.x(end) + .25;
+    YE = RobotEstimate.y(end) + .25;
+    TE = RobotEstimate.th(end) + pi/2;
+    disp([XE,YE].*100);
+    executeTrajectory(-.26+XE,.25+YE,pi/2.0-TE,robot,2);
+    XE = RobotEstimate.x(end);
+    YE = RobotEstimate.y(end);
+    TE = RobotEstimate.th(end);
+    disp([XE,YE].*100);
+    figure(1);
+    for run = 1:3
+       if run == 1
+            curve = cubicSpiral.planTrajectory(.25,.25,0,1);
+            planVelocities(curve,.20);
+       elseif run == 2
+            curve = cubicSpiral.planTrajectory(-.5,-.5,-pi/2,1);
+            planVelocities(curve,.20);
+       elseif run == 3
+            curve = cubicSpiral.planTrajectory(-.25,.25,pi/2,1);
+            planVelocities(curve,.20);
+       end
+       for i = 1: length(curve.poseArray)
+           xPredict(i) = curve.poseArray(1,i);
+           yPredict(i) = curve.poseArray(2,i);
+           if run == 1
+               xy0 = [xPredict(i);yPredict(i);1];
+           elseif run == 2
+               xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xPredict(i);yPredict(i);1];
+           elseif run == 3
+               xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xPredict(i);yPredict(i);1];
+           end
+           xP(i) = xy0(1,1);
+           yP(i) = xy0(2,1);
+        end
+        figure(1);
+        plot(xP,yP);
+        hold on;
+    end
+    hold on;
+    plot(RobotEstimate.x,RobotEstimate.y,'r');
+    grid on;
+    robot.sendVelocity(0,0);
 end
 
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime)
-    global RobotEstimate;
-    global RobotReference;
-    
-    XE = RobotReference.x - RobotEstimate.x(end);
-    YE = RobotReference.y - RobotEstimate.y(end);
-    TE = RobotReference.t - RobotEstimate.th(end);
-    
-    xf = xf-XE;
-    yf = yf-YE;
-    thf = thf-TE;
-
+    %global RobotEstimate;
+    %global RobotReference;
+  
     kpx = 1.5;
     kdx = .1;
 
@@ -36,7 +71,6 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     width = .235;
     curve = cubicSpiral.planTrajectory(xf,yf,thf,1);
     planVelocities(curve,.20);
-    RobotReference.addCurve(curve, xf, yf, thf);
     
     for i = 1: length(curve.poseArray)
        xPredict(i) = curve.poseArray(1,i);
@@ -107,7 +141,7 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
         if xError(index+1) > 0 
            w = w + kppsi_mag*psiError(index+1) + kdpsi_mag*dpsi_dt + kpth*thError(index+1) + kdth*dth_dt;
         else
-            w = w + kpth*thError(index+1) + kdth*dth_dt;    
+           w = w + kpth*thError(index+1) + kdth*dth_dt;    
         end
         
         vr = V + (width/2)*w;
