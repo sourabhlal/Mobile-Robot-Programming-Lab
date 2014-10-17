@@ -5,30 +5,39 @@ function Lab8(robot)
     pause(1);
     
     stopDistance = .075;
+    sailSize = .125;
+    MAX_LINE_ERROR = 1000;
     
+    found = false;
     % find sail
-        ranges = robot.laser.data.ranges;
-        image = rangeImage(ranges,1,false);
+        while (found == false)
+            ranges = robot.laser.data.ranges;
+            image = rangeImage(ranges,1,false);
 
-        [minError num th] = findLineCandidate(image,1,.125);
-        bestIndex = 1;
-        for i = 2:360
-           [err num th] = findLineCandidate(image,i,.125);
-           if(err < minError)
-              minError = err;
-              bestIndex = i;
-           end
+            [minError, num, th] = findLineCandidate(image,1,sailSize);
+            bestIndex = 1;
+            for i = 2:360
+               [err, num, th] = findLineCandidate(image,i,sailSize);
+               if(err < minError && num > 3)
+                  minError = err;
+                  bestIndex = i;
+               end
+            end
+            [err, num, th] = findLineCandidate(image,bestIndex,sailSize);
+            if err < MAX_LINE_ERROR && num >= 3 
+                found = true;
+                x = image.xArray(bestIndex);
+                y = image.yArray(bestIndex);
+                th = image.tArray(bestIndex);
+            else
+                pause(.05);
+            end
         end
-        x = image.xArray(bestIndex);
-        y = image.yArray(bestIndex);
-        th = image.tArray(bestIndex);
-       
-    % convert to robot coordinates  
-     
+    % convert to robot coordinates     
         %object in sensor coordinates
         Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
         %goal in object coordinates
-        Tgo = [cos(0) -sin(0) stopDistance; sin(0) cos(0) 0 ; 0 0 1];
+        Tgo = [cos(0) -sin(0) -stopDistance; sin(0) cos(0) 0 ; 0 0 1];
         %sensor in robot coordinates
         Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
         
@@ -36,9 +45,10 @@ function Lab8(robot)
         Tgr = (Tsr * Tos) * Tgo;
         x = Tgr(1,3);
         y = Tgr(2,3);
-        th = atan2(y/x);
+        th = atan2(y,x);
+        disp([x y th]);
     % move
-        executeTrajectory(x,y,th,robot,2);
+        %executeTrajectory(x,y,th,robot,2);
         
     robot.sendVelocity(0,0);
 end
