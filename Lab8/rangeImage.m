@@ -78,7 +78,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
      
      function [err, num, th] = findLineCandidate(obj,middle,maxLen) 
          % Find the longest sequence of pixels centered at pixel
-         % “middle” whose endpoints are separated by a length less 
+         % “middle�? whose endpoints are separated by a length less 
          % than the provided maximum. Return the line fit error, the 
          % number of pixels participating, and the angle of 
          % the line relative to the sensor. 
@@ -86,15 +86,20 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          lenSoFar = 0;
          num = 1;
          lineCandidate = middle;
-         
-         while lenSoFar <= halfLen
-             left = indexAdd(obj,middle,-1);
-             right = indexAdd(obj,middle,1);
+         left = middle;
+         right = middle;
+         err = 0;
+         check = 1;
+         while lenSoFar <= maxLen && check < 15 
+             left = indexAdd(obj,left,-1);
+             right = indexAdd(obj,right,1);
              dist = sqrt((obj.xArray(left)-obj.xArray(right))^2 + (obj.yArray(left)-obj.yArray(right))^2);
              if dist <= maxLen
                  num = num + 2;
                  lineCandidate = cat(2,left,lineCandidate,right);
              end
+            check = check+2;
+            lenSoFar = dist; 
          end
          startX = obj.xArray(lineCandidate(1));
          startY = obj.yArray(lineCandidate(1));
@@ -111,7 +116,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          end
          
          th = atan2((endY-startY),(endX-startX));
-                 
+                
      end 
      
      function num = numPixels(obj)
@@ -137,7 +142,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
      
      function out = indexAdd(obj,a,b) 
          % add with wraparound over natural numbers. First number 
-         % “a” is "natural" meaning it >=1. Second number is signed. 
+         % “a�? is "natural" meaning it >=1. Second number is signed. 
          % Convert a to 0:3 and add b (which is already 0:3). 
          % Convert the result back by adding 1. 
          out = mod((a-1)+b,obj.numPix)+1; 

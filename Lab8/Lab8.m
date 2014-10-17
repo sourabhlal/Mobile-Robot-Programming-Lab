@@ -11,7 +11,9 @@ function Lab8(robot)
     found = false;
     % find sail
         while (found == false)
-            ranges = robot.laser.data.ranges;
+            objectData = load('objectData.mat');
+            ranges = objectData.laserRanges(4,:);
+            %ranges = robot.laser.data.ranges;
             image = rangeImage(ranges,1,false);
 
             [minError, num, th] = findLineCandidate(image,1,sailSize);
@@ -24,14 +26,14 @@ function Lab8(robot)
                end
             end
             [err, num, th] = findLineCandidate(image,bestIndex,sailSize);
-            if err < MAX_LINE_ERROR && num >= 3 
+            %if  num >= 3 && err < MAX_LINE_ERROR 
                 found = true;
                 x = image.xArray(bestIndex);
                 y = image.yArray(bestIndex);
                 th = image.tArray(bestIndex);
-            else
-                pause(.05);
-            end
+            %else
+            %    pause(.05);
+            %end
         end
     % convert to robot coordinates     
         %object in sensor coordinates
@@ -48,7 +50,7 @@ function Lab8(robot)
         th = atan2(y,x);
         disp([x y th]);
     % move
-        %executeTrajectory(x,y,th,robot,2);
+        executeTrajectory(x,y,th,robot,2);
         
     robot.sendVelocity(0,0);
 end
