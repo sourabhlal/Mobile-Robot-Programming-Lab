@@ -41,11 +41,12 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          % to be equally separated in angle. The operation is done 
          % inline and removed data is deleted. 
  
-         v = find(obj.rArray > rangeImage.minUsefulrange & obj.rArray < rangeImage.maxUsefulrange);
+         v = find(obj.rArray > obj.minUsefulRange & obj.rArray < obj.maxUsefulRange);
          obj.rArray = obj.rArray(v);
          obj.tArray = obj.tArray(v);
          obj.xArray = obj.xArray(v);
          obj.yArray = obj.yArray(v);
+         obj.numPix = length(v);
      end
      
      function plotRvsTh(obj, maxRange) 
@@ -57,7 +58,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          R = R(v);
          Th = Th(v);
          
-         figure;
+         figure(2);
          plot(Th,R);
          title('R vs Th');
  
@@ -66,11 +67,19 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
      function plotXvsY(obj, maxRange)
          % plot the range image after removing all points exceeding 
          % maxRange 
- 
-         v = find(R < maxRange);
-         X = obj.xArray(v);
-         Y = obj.yArray(v);
-         figure;
+         R = obj.rArray;
+   
+         index = 1;
+         for i = 1:length(R)
+            if R(i) < maxRange && R(i) > .05
+                disp(obj.xArray(i));
+                X(index) = obj.xArray(i);
+                Y(index) = obj.yArray(i);
+                index = index+1;
+            end
+         end
+         figure(1);
+         hold on;
          plot(Y,X);
          title('X vs Y')
  
@@ -83,31 +92,32 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          % number of pixels participating, and the angle of 
          % the line relative to the sensor. 
  
-         lenSoFar = 0;
+         dist = 0;
          num = 1;
          lineCandidate = middle;
          left = middle;
          right = middle;
          err = 0;
          check = 1;
-         while lenSoFar <= maxLen && check < 15 
-             left = indexAdd(obj,left,-1);
-             right = indexAdd(obj,right,1);
+         while dist <= maxLen && check < 15 
+             left = dec(obj,left);
+             right = inc(obj,right);
              dist = sqrt((obj.xArray(left)-obj.xArray(right))^2 + (obj.yArray(left)-obj.yArray(right))^2);
              if dist <= maxLen
                  num = num + 2;
                  lineCandidate = cat(2,left,lineCandidate,right);
              end
             check = check+2;
-            lenSoFar = dist; 
+            
          end
+         
          startX = obj.xArray(lineCandidate(1));
          startY = obj.yArray(lineCandidate(1));
          endX = obj.xArray(lineCandidate(end));
          endY = obj.yArray(lineCandidate(end));
          unitX = (endX-startX)/num;
          unitY = (endY-startY)/num;
-         for i = 1:1:num
+         for i = 1:num
              pX = obj.xArray(lineCandidate(i));
              pY = obj.yArray(lineCandidate(i));
              errX = pX - (startX + i*unitX);
@@ -115,8 +125,13 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
              err = err + errX^2 + errY^2;
          end
          
-         th = atan2((endY-startY),(endX-startX));
-                
+         
+         th = atan2((startY-endY),(startX-endX));
+         %disp(th);
+      
+         if th == 0
+             err = 1000;
+         end
      end 
      
      function num = numPixels(obj)

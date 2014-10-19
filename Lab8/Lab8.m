@@ -4,7 +4,7 @@ function Lab8(robot)
     robot.startLaser()
     pause(1);
     
-    stopDistance = .075;
+    stopDistance = .2;
     sailSize = .125;
     MAX_LINE_ERROR = 1000;
     
@@ -12,17 +12,22 @@ function Lab8(robot)
     % find sail
         while (found == false)
             objectData = load('objectData.mat');
-            ranges = objectData.laserRanges(4,:);
-            %ranges = robot.laser.data.ranges;
-            image = rangeImage(ranges,1,false);
+            %ranges = objectData.laserRanges(4,:);
+            ranges = robot.laser.data.ranges;
+            image = rangeImage(ranges,1,true);
 
+            plotRvsTh(image, 1.5);
+            plotXvsY(image, 1.5);
+            
             [minError, num, th] = findLineCandidate(image,1,sailSize);
             bestIndex = 1;
-            for i = 2:360
+            for i = 2:image.numPix
                [err, num, th] = findLineCandidate(image,i,sailSize);
-               if(err < minError && num > 3)
+               disp(err);
+               if(err < minError && num > 1)
                   minError = err;
                   bestIndex = i;
+                
                end
             end
             [err, num, th] = findLineCandidate(image,bestIndex,sailSize);
@@ -30,7 +35,7 @@ function Lab8(robot)
                 found = true;
                 x = image.xArray(bestIndex);
                 y = image.yArray(bestIndex);
-                th = image.tArray(bestIndex);
+              
             %else
             %    pause(.05);
             %end
@@ -39,7 +44,7 @@ function Lab8(robot)
         %object in sensor coordinates
         Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
         %goal in object coordinates
-        Tgo = [cos(0) -sin(0) -stopDistance; sin(0) cos(0) 0 ; 0 0 1];
+        Tgo = [cos(0) -sin(0) 0; sin(0) cos(0) -stopDistance ; 0 0 1];
         %sensor in robot coordinates
         Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
         
@@ -47,8 +52,14 @@ function Lab8(robot)
         Tgr = (Tsr * Tos) * Tgo;
         x = Tgr(1,3);
         y = Tgr(2,3);
-        th = atan2(y,x);
-        disp([x y th]);
+        
+        th = th+pi/2;
+        if th > pi
+            th = th-2*pi;
+        end
+        
+        
+        disp([x y (th/pi)*180]);
     % move
         executeTrajectory(x,y,th,robot,2);
         
@@ -57,6 +68,8 @@ end
 
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime) 
+  global RobotEstimate ;
+    RobotEstimate = estRobot(0,0,0,robot);
     kpx = 1.5;
     kdx = .1;
 
@@ -75,6 +88,9 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
        xPredict(i) = curve.poseArray(1,i);
        yPredict(i) = curve.poseArray(2,i);
     end
+    hold on;
+    figure(1);
+    plot(yPredict,xPredict);
     
     prevDistRight = robot.encoders.data.right;
     prevDistLeft = robot.encoders.data.left;
@@ -87,6 +103,8 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     xActual(1) = 0;
     yActual(1) = 0;  
     while toc(time) < (completionTime + pauseTime)
+        figure(1);
+        plot(RobotEstimate.y,RobotEstimate.x,'r');
         currTime = toc(time);
         if currTime < (completionTime)
             t =  currTime - .22;
