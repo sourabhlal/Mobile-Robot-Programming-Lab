@@ -85,7 +85,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
  
      end
      
-     function [err, num, th] = findLineCandidate(obj,middle,maxLen) 
+     function [err, num, th, dist] = findLineCandidate(obj,middle,maxLen) 
          % Find the longest sequence of pixels centered at pixel
          % â€œmiddleâ€? whose endpoints are separated by a length less 
          % than the provided maximum. Return the line fit error, the 

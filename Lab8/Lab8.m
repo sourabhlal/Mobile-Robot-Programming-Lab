@@ -19,18 +19,17 @@ function Lab8(robot)
             plotRvsTh(image, 1.5);
             plotXvsY(image, 1.5);
             
-            [minError, num, th] = findLineCandidate(image,1,sailSize);
+            [minError, num, th, dist] = findLineCandidate(image,1,sailSize);
             bestIndex = 1;
             for i = 2:image.numPix
-               [err, num, th] = findLineCandidate(image,i,sailSize);
-               disp(err);
-               if(err < minError && num > 1)
+               [err, num, th, dist] = findLineCandidate(image,i,sailSize);
+               %disp(err);
+               if(err < minError && num > 1 && dist > .08)
                   minError = err;
                   bestIndex = i;
-                
                end
             end
-            [err, num, th] = findLineCandidate(image,bestIndex,sailSize);
+            [err, num, th, dist] = findLineCandidate(image,bestIndex,sailSize);
             %if  num >= 3 && err < MAX_LINE_ERROR 
                 found = true;
                 x = image.xArray(bestIndex);
@@ -62,7 +61,7 @@ function Lab8(robot)
         disp([x y (th/pi)*180]);
     % move
         executeTrajectory(x,y,th,robot,2);
-        
+        axis equal;
     robot.sendVelocity(0,0);
 end
 
@@ -90,7 +89,8 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     end
     hold on;
     figure(1);
-    plot(yPredict,xPredict);
+    plot(-yPredict,xPredict);
+    axis equal
     
     prevDistRight = robot.encoders.data.right;
     prevDistLeft = robot.encoders.data.left;
@@ -104,7 +104,9 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     yActual(1) = 0;  
     while toc(time) < (completionTime + pauseTime)
         figure(1);
-        plot(RobotEstimate.y,RobotEstimate.x,'r');
+        plot(-RobotEstimate.y,RobotEstimate.x,'r');
+        axis equal
+    
         currTime = toc(time);
         if currTime < (completionTime)
             t =  currTime - .22;
