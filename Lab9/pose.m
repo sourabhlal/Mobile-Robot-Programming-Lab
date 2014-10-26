@@ -9,11 +9,11 @@ classdef pose < handle
     end
     
     properties(Access = private)
-        poseVec;
+        
     end
     
     properties(Access = public)
-
+        poseVec;
     end
     
     methods(Static = true)

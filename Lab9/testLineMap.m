@@ -4,10 +4,10 @@ function testLineMap(robot)
     thePose = pose(.5,.5,0);
         
     %make map
-    x1s = [0:.1:2];
+    x1s = [0:.2:2];
     y1s = zeros(1,length(x1s));
     
-    y2s = [0:.1:2];
+    y2s = [0:.2:2];
     x2s = zeros(1,length(y2s));
     
     lines_p1 = [x1s;y1s ];
@@ -31,11 +31,10 @@ function testLineMap(robot)
         w1pts = ones(1,image.numPix);
 
         modelPts = [x1pts ; y1pts ; w1pts];
-
+       
+        
         [E, J] = getJacobian(obj,thePose,modelPts);
-        %disp(E);
-        %disp([J]);
-
+      
 %         plot(modelPts(1,:),modelPts(2,:));
 %         hold on;
 %         plot (lines_p1(1,:),lines_p1(2,:),'-.r');   
@@ -43,12 +42,12 @@ function testLineMap(robot)
 %         axis equal;
         
         
-        v = 10*J(1);
+        v = J(1);
         v = max(-.15,v);
         v = min(.15,v);
-        disp(E);
+        disp(v);
         %robot.sendVelocity(v,v);
-        pause(.01);
+        %pause(.5);
     
     end
     

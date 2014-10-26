@@ -3,7 +3,7 @@ classdef lineMapLocalizer < handle
     % order to find the true location of the range scan relative to
     % the map.
     properties(Constant)
-        maxErr = 0.05;% 5 cm
+        maxErr = .05;% 5 cm
         minPts = 5; %min # of points that must match
     end
     
@@ -21,7 +21,7 @@ classdef lineMapLocalizer < handle
     
     
     methods (Static = true)
-    function [rad2 , po] = closestPointOnLineSegment(pi,p1,p2)
+        function [rad2 , po] = closestPointOnLineSegment(pi,p1,p2)
             % Find point po on a line segment p1 -p2 closest to a given
             % point pi and return the closest point and the square of
             % the distance to it. The line segment has endpoints p1
@@ -61,9 +61,6 @@ classdef lineMapLocalizer < handle
     end
     
     methods(Access = public)
-        
-        
-        
         
         function obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh)
             % create a lineMapLocalizer
@@ -125,7 +122,7 @@ classdef lineMapLocalizer < handle
         function [errPlus0,J] = getJacobian(obj,poseIn,modelPts)
             % Computes the gradient of the error function
             errPlus0 = fitError(obj,poseIn,modelPts,false);
-            eps = 0.001;
+            eps = 0.01;
             
             dp = [eps ; 0.0 ; 0.0];
             newPose = pose(poseIn.getPoseVec()+dp);

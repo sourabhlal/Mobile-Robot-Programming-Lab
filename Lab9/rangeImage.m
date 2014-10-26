@@ -72,7 +72,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          index = 1;
          for i = 1:length(R)
             if R(i) < maxRange && R(i) > .05
-                disp(obj.xArray(i));
+                %disp(obj.xArray(i));
                 X(index) = obj.xArray(i);
                 Y(index) = obj.yArray(i);
                 index = index+1;
