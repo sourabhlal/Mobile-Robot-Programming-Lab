@@ -84,12 +84,10 @@ classdef lineMapLocalizer < handle
             eps = 0.001;
             dp = [eps ; 0.0 ; 0.0];
             newPose = pose(poseIn.getPose+dp);
+            % Fill me in...
             
             %J = [dE/dx dE/dy dE/dth]
-            dx = newPose(1)-poseIn(1);
-            dy = newPose(2)-poseIn(2);
-            dth = newPose(3)-poseIn(3);
-            J = [errPlus0/dx errPlus0/dy errPlus0/dth]; 
+            dx = newPose(1)- 
         end
         
     end     
