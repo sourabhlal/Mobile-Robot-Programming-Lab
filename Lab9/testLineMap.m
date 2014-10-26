@@ -1,21 +1,55 @@
-function testLineMap()
-    p1 = [-10,.1];
-    p2 = [0,.1];
-    p3 = [10,-.1];
-    line1 = [p1,p2,p3];
+function testLineMap(robot)
+   
+    % pick a pose
+    thePose = pose(.5,.5,0);
+        
+    %make map
+    x1s = [0:.1:2];
+    y1s = zeros(1,length(x1s));
     
-    p4 = [.1,-10];
-    p5 = [.1,0];
-    p6 = [-.1,10];
-    line2 = [p4,p5,p6];
+    y2s = [0:.1:2];
+    x2s = zeros(1,length(y2s));
+    
+    lines_p1 = [x1s;y1s ];
+    lines_p2 = [x2s;y2s ];
+    
     
     gain = 0.01;
     errThresh = 0.001;
     gradThresh = 0.0005; 
 
-    lineMapLocalizer(line1,line2,gain,errThresh,gradThresh);
+    obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh);
+
+    while(1==1)
+        % Set up test points
+        ranges = robot.laser.data.ranges;
+        image = rangeImage(ranges,1,true);
+        removeBadPoints(image);
+
+        x1pts = image.xArray;
+        y1pts = image.yArray;
+        w1pts = ones(1,image.numPix);
+
+        modelPts = [x1pts ; y1pts ; w1pts];
+
+        [E, J] = getJacobian(obj,thePose,modelPts);
+        %disp(E);
+        %disp([J]);
+
+%         plot(modelPts(1,:),modelPts(2,:));
+%         hold on;
+%         plot (lines_p1(1,:),lines_p1(2,:),'-.r');   
+%         plot (lines_p2(1,:),lines_p2(2,:),'-.r');
+%         axis equal;
+        
+        
+        v = 10*J(1);
+        v = max(-.15,v);
+        v = min(.15,v);
+        disp(E);
+        %robot.sendVelocity(v,v);
+        pause(.01);
     
-    poseIn = [5,5,0];
+    end
     
-    [E, J] = getJacobian(obj,poseIn,modelPts);
 end
