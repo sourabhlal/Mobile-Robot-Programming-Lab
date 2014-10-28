@@ -77,7 +77,8 @@ function res = pollKeyboard()
     keypressDataReady = 0;
     if(keyboardDataReadyLast)
         res = keypressKey;
-        disp('gotOne');
+        
+        %disp('gotOne');
     else
         res = false;
     end

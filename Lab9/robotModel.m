@@ -91,6 +91,7 @@ classdef robotModel < handle
             bodyPts = [bx ; by ; ones(1,size(bx,2))];
         end
         
+        
     end
     
     methods(Access = private)

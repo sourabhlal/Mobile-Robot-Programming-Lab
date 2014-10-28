@@ -88,7 +88,7 @@ classdef lineMapLocalizer < handle
             worldPts = pose.bToA()*ptsInModelFrame;
             for i = 1:size(worldPts,2)
                 r2 = obj.closestSquaredDistanceToLines(worldPts(:,i));
-                if (sqrt(r2) < obj.maxError)
+                if (sqrt(r2) > obj.maxError)
                     ids = [ids i];
                 end
             end
@@ -122,24 +122,34 @@ classdef lineMapLocalizer < handle
         function [errPlus0,J] = getJacobian(obj,poseIn,modelPts)
             % Computes the gradient of the error function
             errPlus0 = fitError(obj,poseIn,modelPts,false);
-            eps = 0.01;
+            eps = 0.001;
             
             dp = [eps ; 0.0 ; 0.0];
             newPose = pose(poseIn.getPoseVec()+dp);
             newE = fitError(obj,newPose,modelPts,false);
-            dEdx = (newE-errPlus0)/eps;
+            dEdx1 = (-errPlus0+newE)/eps;
             
             dp = [0.0 ; eps ; 0.0];
             newPose = pose(poseIn.getPoseVec()+dp);
             newE = fitError(obj,newPose,modelPts,false);
-            dEdy = (newE-errPlus0)/eps;
+            dEdy1 = (-errPlus0+newE)/eps;
             
             dp = [0.0 ; 0.0 ; eps];
             newPose = pose(poseIn.getPoseVec()+dp);
             newE = fitError(obj,newPose,modelPts,false);
-            dEdth = (newE-errPlus0)/eps;
+            dEdth1 = (-errPlus0+newE)/eps;
             
-            J = [dEdx dEdy dEdth]; 
+            dEdx1 = min(dEdx1,.05);
+            dEdx1 = max(dEdx1,-.05);
+            
+            dEdy1 = min(dEdy1,.05);
+            dEdy1 = max(dEdy1,-.05);
+            
+            dEdth1 = min(dEdth1,.05);
+            dEdth1 = max(dEdth1,-.05);
+            
+            
+            J = [dEdx1 dEdy1 dEdth1 ]; 
         end
         
     end     
