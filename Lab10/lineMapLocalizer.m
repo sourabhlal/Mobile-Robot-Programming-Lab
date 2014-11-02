@@ -139,12 +139,12 @@ classdef lineMapLocalizer < handle
             newE = fitError(obj,newPose,modelPts,false);
             dEdth1 = (-errPlus0+newE)/eps;
             
-            dEdx1 = min(dEdx1,.05);
-            dEdx1 = max(dEdx1,-.05);
+            dEdx1 = min(dEdx1,.01);
+            dEdx1 = max(dEdx1,-.01);
             
-            dEdy1 = min(dEdy1,.05);
-            dEdy1 = max(dEdy1,-.05);
-            
+            dEdy1 = min(dEdy1,.01);
+            dEdy1 = max(dEdy1,-.01);
+          
             dEdth1 = min(dEdth1,.05);
             dEdth1 = max(dEdth1,-.05);
             

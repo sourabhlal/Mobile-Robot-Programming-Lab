@@ -23,7 +23,7 @@ function Lab10(robot)
     %xf = 0.75; yf = 0.25; thf = 0.0;
     %xf = 0.5; yf = 0.5; thf = pi()/2.0;
     disp([goal(1,3), goal(2,3), atan2(goal(2,1),goal(1,1))]);
-    executeTrajectory(-goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1))),robot,2);
+    executeTrajectory( , , ),robot,2);
     t2 = tic;
     while(toc(t2) < 5)
        LineMap.testLineMap(robot); 
