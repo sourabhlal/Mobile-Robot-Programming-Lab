@@ -50,7 +50,7 @@ function Lab10(robot)
     robot.sendVelocity(0,0);
     
     getNewPose(robot);
-    plot(RobotReference.y, RobotReference.x);
+ 
 end
 
 function getNewPose(robot)
@@ -63,15 +63,15 @@ function getNewPose(robot)
        LineMap.testLineMap(robot); 
     end
     thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
-    
-    thePose = pose(.25*RobotEstimate.x(end)+.75*thePose.x , .25*RobotEstimate.y(end)+.75*thePose.y , mod(.25*RobotEstimate.th+.75*thePose.th,2*pi));
-    
+ 
     disp(thePose.getPoseVec());
 end
 
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime)
-    
+    global thePose;
+    global RobotEstimate;
+
     kpx = 0;
     kdx = 0;%.1;
 
@@ -88,7 +88,16 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
     for i = 1: length(curve.poseArray)
        xPredict(i) = curve.poseArray(1,i);
        yPredict(i) = curve.poseArray(2,i);
+       th = atan2(yPredict(i),xPredict(i));
+       Trg = [cos(th) -sin(th) xPredict(i) ; sin(th) cos(th) yPredict(i) ; 0 0 1];
+       Twr = [cos(thePose.th) -sin(thePose.th) thePose.x ; sin(thePose.th) cos(thePose.th) thePose.y ; 0 0 1];
+       Twg = Twr * Trg; 
+       xP(i) = Twg(1,3) ;
+       yP(i) = Twg(2,3) ;
     end
+    figure(1)
+    plot(xP,yP);
+    hold on;
     
     prevDistRight = robot.encoders.data.right;
     prevDistLeft = robot.encoders.data.left;
@@ -170,7 +179,16 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
         index = index+1;
         prevTime = currTime;
 
-        pause(.01);
+        if(RobotEstimate.x(end) < 2 && RobotEstimate.x(end) > 0 ...
+            && RobotEstimate.y(end) < 2 && RobotEstimate.y(end) > 0)
+            plot(RobotEstimate.x(end),RobotEstimate.y(end),'.r');
+        end
+        axis([0 2 0 2]);
+        axis equal;
+        hold on;
+        grid on;
+        
+        pause(.1);
     end
     
 end
