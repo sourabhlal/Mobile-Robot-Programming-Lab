@@ -14,8 +14,7 @@ function Lab9(robot)
      dV = 0.002*vGain;
   
      while(1==1)
-      
-             testLineMap(robot);
+          testLineMap(robot);
         
           key = get(gcf,'CurrentCharacter');
           %disp(key);

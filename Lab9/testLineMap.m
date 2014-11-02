@@ -1,4 +1,4 @@
-function testLineMap(robot) 
+function testLineMap(robot,count) 
 global thePose;
 %check sensor
 %     prevImage = robot.laser.data.ranges;
@@ -47,26 +47,25 @@ global thePose;
 
         modelPts = [x1pts ; y1pts ; w1pts];
         
-        figure(2);
-        plot(0,0);
-        hold on
-        testPose = pose(robotModel.senToWorld(thePose));
-     
-        
-        worldLidarPts = robotModel.senToWorld(thePose)*modelPts;
-        worldLidarPts = [1 0 .1; 0 1 0; 0 0 1]*worldLidarPts;
-        plot(worldLidarPts(1,:),worldLidarPts(2,:));
-        plot( x1s,y1s,'r');
-        plot(x2s,y2s,'r');
-        
-       
-        graphPose =  [cos(testPose.th) -sin(testPose.th) testPose.x; sin(testPose.th) cos(testPose.th) testPose.y; 0 0 1] * robotModel.bodyGraph() ;
-        graphPose = [1 0 .2; 0 1 0; 0 0 1]*graphPose;
-        plot(graphPose(1,:),graphPose(2,:),'g');
-        axis([-2 2 -2 2]);
-        grid on;
-        hold off
-        
+            figure(2);
+            plot(0,0);
+            hold on
+            testPose = pose(robotModel.senToWorld(thePose));
+
+
+            worldLidarPts = robotModel.senToWorld(thePose)*modelPts;
+            worldLidarPts = [1 0 .1; 0 1 0; 0 0 1]*worldLidarPts;
+            plot(worldLidarPts(1,:),worldLidarPts(2,:));
+            plot( x1s,y1s,'r');
+            plot(x2s,y2s,'r');
+
+
+            graphPose =  [cos(testPose.th) -sin(testPose.th) testPose.x; sin(testPose.th) cos(testPose.th) testPose.y; 0 0 1] * robotModel.bodyGraph() ;
+            graphPose = [1 0 .2; 0 1 0; 0 0 1]*graphPose;
+            plot(graphPose(1,:),graphPose(2,:),'g');
+            axis([-2 2 -2 2]);
+            grid on;
+            hold off
         
         [E(index), J] = getJacobian(obj,thePose,modelPts);
 
@@ -75,7 +74,7 @@ global thePose;
         %hold on;
         %axis([-2, 2, -2, 2]);
         
-        disp(thePose.getPoseVec());
+        %disp(thePose.getPoseVec());
         thePose = pose(thePose.getPoseVec() - transpose(J)); 
         
         
