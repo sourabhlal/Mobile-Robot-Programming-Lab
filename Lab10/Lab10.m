@@ -1,9 +1,9 @@
 function Lab10(robot)
     global thePose;
     global RobotEstimate ;
-      
+    
     thePose = pose(.5,.5,pi/2);
-    figure(1);
+    
     LineMap.makeMap();
     robot.startLaser();
      
@@ -18,64 +18,62 @@ function Lab10(robot)
     Twg = [cos(thf) -sin(thf) xf ; sin(thf) cos(thf) yf ; 0 0 1];
     Twr = [cos(thePose.th) -sin(thePose.th) thePose.x ; sin(thePose.th) cos(thePose.th) thePose.y ; 0 0 1];
     Trw = inv(Twr);
-    goal = Twg * Trw ;
+    goal = Trw * Twg ;
     
-    %xf = 0.75; yf = 0.25; thf = 0.0;
-    %xf = 0.5; yf = 0.5; thf = pi()/2.0;
-    disp([goal(1,3), goal(2,3), atan2(goal(2,1),goal(1,1))]);
-    executeTrajectory(-goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1))),robot,2);
-    t2 = tic;
-    while(toc(t2) < 5)
+    disp(goal);
+    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
+    robot.sendVelocity(0,0);
+    
+    getNewPose(robot);
+    
+    xf = 0.75; yf = 0.25; thf = 0.0;
+    Twg = [cos(thf) -sin(thf) xf ; sin(thf) cos(thf) yf ; 0 0 1];
+    Twr = [cos(thePose.th) -sin(thePose.th) thePose.x ; sin(thePose.th) cos(thePose.th) thePose.y ; 0 0 1];
+    Trw = inv(Twr);
+    goal = Trw * Twg ;
+    
+    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
+    robot.sendVelocity(0,0);
+    
+    getNewPose(robot);
+    
+    xf = 0.5; yf = 0.5; thf = pi()/2.0;
+    Twg = [cos(thf) -sin(thf) xf ; sin(thf) cos(thf) yf ; 0 0 1];
+    Twr = [cos(thePose.th) -sin(thePose.th) thePose.x ; sin(thePose.th) cos(thePose.th) thePose.y ; 0 0 1];
+    Trw = inv(Twr);
+    goal = Trw * Twg ;
+    
+    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
+    robot.sendVelocity(0,0);
+    
+    getNewPose(robot);
+   
+end
+
+function getNewPose(robot)
+    global thePose;
+    global RobotEstimate ;
+    timer = tic;
+    thePose = pose(RobotEstimate.x(end),RobotEstimate.y(end),RobotEstimate.th);
+    while(toc(timer) < 5)
        LineMap.testLineMap(robot); 
     end
-    disp(thePose.getPoseVec());
-    executeTrajectory(-.5,-.5,-pi/2.0,robot,2);
-    executeTrajectory(-.25,.25,pi/2.0,robot,2);
+    thePose = pose(.25*RobotEstimate.x(end)+.75*thePose.x , .25*RobotEstimate.y(end)+.75*thePose.y , mod(.25*RobotEstimate.th+.75*thePose.th,2*pi));
     
-    for run = 1:3
-       if run == 1
-            curve = cubicSpiral.planTrajectory(.25,.25,0,1);
-            planVelocities(curve,.20);
-       elseif run == 2
-            curve = cubicSpiral.planTrajectory(-.5,-.5,-pi/2,1);
-            planVelocities(curve,.20);
-       elseif run == 3
-            curve = cubicSpiral.planTrajectory(-.25,.25,pi/2,1);
-            planVelocities(curve,.20);
-       end
-       for i = 1: length(curve.poseArray)
-           xPredict(i) = curve.poseArray(1,i);
-           yPredict(i) = curve.poseArray(2,i);
-           if run == 1
-               xy0 = [xPredict(i);yPredict(i);1];
-           elseif run == 2
-               xy0 = [1,0,0.25;0,1,0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-           elseif run == 3
-               xy0 = [0,1,-0.25;-1,0,-0.25;0,0,1]*[xPredict(i);yPredict(i);1];
-           end
-           xP(i) = xy0(1,1);
-           yP(i) = xy0(2,1);
-        end
-        figure(1);
-        plot(xP,yP);
-        hold on;
-    end
-    hold on;
-    plot(RobotEstimate.x,RobotEstimate.y,'r');
-    grid on;
-    robot.sendVelocity(0,0);
+    disp(thePose.getPoseVec());
 end
+
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime)
     
-    kpx = 1.5;
-    kdx = .1;
+    kpx = 1.0;
+    kdx = 0;%.1;
 
     kppsi = .1;   
-    kdpsi = .01;
+    kdpsi = 0;%.01;
 
     kpth = 3;   
-    kdth = .3;
+    kdth = 0;%.3;
 
     width = .235;
     curve = cubicSpiral.planTrajectory(xf,yf,thf,1);
