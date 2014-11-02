@@ -1,7 +1,7 @@
 function Lab10(robot)
     global thePose;
     global RobotEstimate ;
-    
+
     thePose = pose(.5,.5,pi/2);
     
     LineMap.makeMap();
@@ -9,8 +9,11 @@ function Lab10(robot)
      
     t1 = tic;
     while(toc(t1) < 5)
+       disp(thePose.getPoseVec());
        LineMap.testLineMap(robot); 
     end
+    thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
+    
     disp(thePose.getPoseVec());
     RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
     
@@ -47,7 +50,7 @@ function Lab10(robot)
     robot.sendVelocity(0,0);
     
     getNewPose(robot);
-   
+    plot(RobotReference.y, RobotReference.x);
 end
 
 function getNewPose(robot)
@@ -56,8 +59,11 @@ function getNewPose(robot)
     timer = tic;
     thePose = pose(RobotEstimate.x(end),RobotEstimate.y(end),RobotEstimate.th);
     while(toc(timer) < 5)
+       disp(thePose.getPoseVec());
        LineMap.testLineMap(robot); 
     end
+    thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
+    
     thePose = pose(.25*RobotEstimate.x(end)+.75*thePose.x , .25*RobotEstimate.y(end)+.75*thePose.y , mod(.25*RobotEstimate.th+.75*thePose.th,2*pi));
     
     disp(thePose.getPoseVec());
@@ -66,13 +72,13 @@ end
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime)
     
-    kpx = 1.0;
+    kpx = 0;
     kdx = 0;%.1;
 
-    kppsi = .1;   
+    kppsi = 0;   
     kdpsi = 0;%.01;
 
-    kpth = 3;   
+    kpth = 0;   
     kdth = 0;%.3;
 
     width = .235;

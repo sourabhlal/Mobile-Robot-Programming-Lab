@@ -17,7 +17,7 @@ classdef LineMap
                 y1pts(numPoints) = image.yArray(i);
                 w1pts(numPoints) = 1;
                 numPoints = numPoints + 1;
-                i = i+10;
+                i = i+1;
             end
             
             modelPts = [x1pts ; y1pts ; w1pts];
