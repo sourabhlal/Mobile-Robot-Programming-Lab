@@ -25,7 +25,6 @@ function Lab10(robot)
     
     disp(goal);
     executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
-    robot.sendVelocity(0,0);
     
     getNewPose(robot);
     
@@ -35,7 +34,9 @@ function Lab10(robot)
     Trw = inv(Twr);
     goal = Trw * Twg ;
     
-    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
+    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,.1);
+    robot.sendVelocity(-.05,-.05);
+    pause(.8)
     robot.sendVelocity(0,0);
     
     getNewPose(robot);
@@ -46,8 +47,11 @@ function Lab10(robot)
     Trw = inv(Twr);
     goal = Trw * Twg ;
     
-    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,2);
+    executeTrajectory(goal(1,3),goal(2,3),atan2(goal(2,1),goal(1,1)),robot,.1);
+    robot.sendVelocity(-.05,-.05);
+    pause(.5)
     robot.sendVelocity(0,0);
+    
     
     getNewPose(robot);
  
@@ -63,7 +67,7 @@ function getNewPose(robot)
        LineMap.testLineMap(robot); 
     end
     thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
- 
+    RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
     disp(thePose.getPoseVec());
 end
 

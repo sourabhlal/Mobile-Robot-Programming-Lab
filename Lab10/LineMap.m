@@ -9,9 +9,13 @@ classdef LineMap
             ranges = robot.laser.data.ranges;
             image = rangeImage(ranges,1,true);
             removeBadPoints(image);
-
+            
             i=1;
             numPoints = 1;
+            x1pts(1) = 0;
+            y1pts(1) = 0;
+            w1pts(1) = 0;
+             
             while i < image.numPix;
                 x1pts(numPoints) = image.xArray(i);
                 y1pts(numPoints) = image.yArray(i);
@@ -50,7 +54,7 @@ classdef LineMap
 
             %disp(thePose.getPoseVec());
             thePose = pose(thePose.getPoseVec() - transpose(J)); 
-
+            pause(.01);
         end   
 
 
