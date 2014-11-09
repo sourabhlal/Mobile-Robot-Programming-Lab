@@ -10,7 +10,7 @@ function Lab11(robot)
     LineMap.makeMap();
     while(1==1)
         t1 = tic;
-        while(toc(t1) < 15)
+        while(toc(t1) < 10)
            disp(thePose.getPoseVec());
            LineMap.testLineMap(robot); 
         end
@@ -57,9 +57,25 @@ function Lab11(robot)
         disp([x y (th/pi)*180]);
         % move
         executeTrajectory(x,y,th,robot,2);
-
+        backUp(robot);
         robot.sendVelocity(0,0);    
     end
+end
+
+function backUp(robot)
+    %global thePose;
+    global RobotEstimate ;
+    pause(10);
+    initialTh = RobotEstimate.th;
+    robot.sendVelocity(-.1,-.1)
+    pause(2);
+    disp(initialTh);
+    while(abs(RobotEstimate.th-initialTh) < pi )
+        disp(RobotEstimate.th);
+        robot.sendVelocity(.05,-.05);
+        pause(.05);
+    end
+    robot.sendVelocity(0,0);
 end
 
 function getNewPose(robot)
@@ -199,5 +215,8 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
         
         pause(.1);
     end
+    
+    
+    
     
 end

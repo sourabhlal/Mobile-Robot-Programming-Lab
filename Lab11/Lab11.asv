@@ -8,60 +8,66 @@ function Lab11(robot)
     thePose = pose(.5,.5,pi/2);
     
     LineMap.makeMap();
-     
-    t1 = tic;
-    while(toc(t1) < 5)
-       disp(thePose.getPoseVec());
-       LineMap.testLineMap(robot); 
+    while(1==1)
+        t1 = tic;
+        while(toc(t1) < 10)
+           disp(thePose.getPoseVec());
+           LineMap.testLineMap(robot); 
+        end
+        thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
+
+        disp(thePose.getPoseVec());
+        RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
+
+        ranges = robot.laser.data.ranges;
+        image = rangeImage(ranges,1,true);
+
+        [minError, num, th, dist] = findLineCandidate(image,1,sailSize);
+        bestIndex = 1;
+        for i = 2:image.numPix
+           [err, num, th, dist] = findLineCandidate(image,i,sailSize);
+           if(err < minError && num > 1 && dist > .08)
+              minError = err;
+              bestIndex = i;
+           end
+        end
+        [err, num, th, dist] = findLineCandidate(image,bestIndex,sailSize);
+        x = image.xArray(bestIndex);
+        y = image.yArray(bestIndex);
+
+
+        % convert to robot coordinates     
+        %object in sensor coordinates
+        Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
+        %goal in object coordinates
+        Tgo = [cos(0) -sin(0) 0; sin(0) cos(0) -stopDistance ; 0 0 1];
+        %sensor in robot coordinates
+        Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
+
+        %goal in robot coordinates
+        Tgr = (Tsr * Tos) * Tgo;
+        x = Tgr(1,3);
+        y = Tgr(2,3);
+
+        th = th+pi/2;
+        if th > pi
+            th = th-2*pi;
+        end
+
+        disp([x y (th/pi)*180]);
+        % move
+        executeTrajectory(x,y,th,robot,2);
+        backUp(robot);
+        robot.sendVelocity(0,0);    
     end
-    thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
-    
-    disp(thePose.getPoseVec());
-    RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
-   
-    ranges = robot.laser.data.ranges;
-    image = rangeImage(ranges,1,true);
+end
 
-    [minError, num, th, dist] = findLineCandidate(image,1,sailSize);
-    bestIndex = 1;
-    for i = 2:image.numPix
-       [err, num, th, dist] = findLineCandidate(image,i,sailSize);
-       if(err < minError && num > 1 && dist > .08)
-          minError = err;
-          bestIndex = i;
-       end
-    end
-    [err, num, th, dist] = findLineCandidate(image,bestIndex,sailSize);
-    x = image.xArray(bestIndex);
-    y = image.yArray(bestIndex);
-
-
-    % convert to robot coordinates     
-    %object in sensor coordinates
-    Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
-    %goal in object coordinates
-    Tgo = [cos(0) -sin(0) 0; sin(0) cos(0) -stopDistance ; 0 0 1];
-    %sensor in robot coordinates
-    Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
-
-    %goal in robot coordinates
-    Tgr = (Tsr * Tos) * Tgo;
-    x = Tgr(1,3);
-    y = Tgr(2,3);
-
-    th = th+pi/2;
-    if th > pi
-        th = th-2*pi;
-    end
-
+function backUp(robot)
+    robot.sendVelocity(-.1,-.1)
+    pause(1);
+    while()
         
-    disp([x y (th/pi)*180]);
-    % move
-    executeTrajectory(x,y,th,robot,2);
-    
-    robot.sendVelocity(0,0);    
-    disp([x y (th/pi)*180]);
-    
+    end
 end
 
 function getNewPose(robot)
@@ -201,5 +207,8 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
         
         pause(.1);
     end
+    
+    
+    
     
 end
