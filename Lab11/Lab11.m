@@ -8,17 +8,18 @@ function Lab11(robot)
     thePose = pose(.5,.5,pi/2);
     
     LineMap.makeMap();
+    t1 = tic;
+    while(toc(t1) < 10)
+       disp(thePose.getPoseVec());
+       LineMap.testLineMap(robot); 
+    end
+    thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
+
+    disp(thePose.getPoseVec());
+    RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
+
     while(1==1)
-        t1 = tic;
-        while(toc(t1) < 10)
-           disp(thePose.getPoseVec());
-           LineMap.testLineMap(robot); 
-        end
-        thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
-
-        disp(thePose.getPoseVec());
-        RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
-
+        
         ranges = robot.laser.data.ranges;
         image = rangeImage(ranges,1,true);
 
@@ -54,9 +55,24 @@ function Lab11(robot)
             th = th-2*pi;
         end
 
-        disp([x y (th/pi)*180]);
+        %disp([x y (th/pi)*180]);
         % move
-        executeTrajectory(x,y,th,robot,2);
+        if(x+RobotEstimate.x(end) > .15 && y+RobotEstimate.y(end) > .15)
+            executeTrajectory(x,y,th,robot,2);
+        else
+            continue;
+        end
+
+        t1 = tic;
+        while(toc(t1) < 10)
+           disp(thePose.getPoseVec());
+           LineMap.testLineMap(robot); 
+        end
+        thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
+
+        disp(thePose.getPoseVec());
+        RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
+
         backUp(robot);
         robot.sendVelocity(0,0);    
     end
