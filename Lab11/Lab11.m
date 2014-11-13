@@ -1,78 +1,69 @@
 function Lab11(robot)
     global thePose;
     global RobotEstimate ;
-
+    
     stopDistance = .2;
     sailSize = .125;
  
     thePose = pose(.5,.5,pi/2);
+    RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
     
     LineMap.makeMap();
-    t1 = tic;
-    while(toc(t1) < 10)
-       disp(thePose.getPoseVec());
-       LineMap.testLineMap(robot); 
-    end
-    thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
-
-    disp(thePose.getPoseVec());
-    RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
-
+    
     while(1==1)
+        getNewPose(robot);
+        leave = 0;
+        while(leave == 0)
+            
+            ranges = robot.laser.data.ranges;
+            image = rangeImage(ranges,1,true);
+
+             plotXvsY(image, 1);
+
+            [avgE, minError, num, th, dist] = findLineCandidate(image,1,sailSize);
+            bestIndex = 1;
+            for i = 2:image.numPix
+               [avgE, err, num, th, dist] = findLineCandidate(image,i,sailSize);
+
+               %disp(avgE);
+               if(err < minError && num > 1 && dist > .08 && avgE > .5)
+                  minError = err;
+                  bestIndex = i;
+               end
+            end
+            [avgE, err, num, th, dist] = findLineCandidate(image,bestIndex,sailSize);
+            x = image.xArray(bestIndex);
+            y = image.yArray(bestIndex);
+
+
+            % convert to robot coordinates     
+            %object in sensor coordinates
+            Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
+            %goal in object coordinates
+            Tgo = [cos(0) -sin(0) 0; sin(0) cos(0) -stopDistance ; 0 0 1];
+            %sensor in robot coordinates
+            Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
+
+            %goal in robot coordinates
+            Tgr = (Tsr * Tos) * Tgo;
+            x = Tgr(1,3);
+            y = Tgr(2,3);
+
+            th = th+pi/2;
+            if th > pi
+                th = th-2*pi;
+            end
+
+            %disp([x y (th/pi)*180]);
+            % move
+            if abs(th) < pi/6;
+                executeTrajectory(x,y,th,robot,2);
+                leave = 1;
+            end
+        end
+
+        getNewPose(robot);
         
-        ranges = robot.laser.data.ranges;
-        image = rangeImage(ranges,1,true);
-
-        [minError, num, th, dist] = findLineCandidate(image,1,sailSize);
-        bestIndex = 1;
-        for i = 2:image.numPix
-           [err, num, th, dist] = findLineCandidate(image,i,sailSize);
-           if(err < minError && num > 1 && dist > .08)
-              minError = err;
-              bestIndex = i;
-           end
-        end
-        [err, num, th, dist] = findLineCandidate(image,bestIndex,sailSize);
-        x = image.xArray(bestIndex);
-        y = image.yArray(bestIndex);
-
-
-        % convert to robot coordinates     
-        %object in sensor coordinates
-        Tos = [cos(th) -sin(th) x ; sin(th) cos(th) y ; 0 0 1];
-        %goal in object coordinates
-        Tgo = [cos(0) -sin(0) 0; sin(0) cos(0) -stopDistance ; 0 0 1];
-        %sensor in robot coordinates
-        Tsr = [cos(0) -sin(0) -.075 ; sin(0) cos(0) 0 ; 0 0 1];
-
-        %goal in robot coordinates
-        Tgr = (Tsr * Tos) * Tgo;
-        x = Tgr(1,3);
-        y = Tgr(2,3);
-
-        th = th+pi/2;
-        if th > pi
-            th = th-2*pi;
-        end
-
-        %disp([x y (th/pi)*180]);
-        % move
-        if(x+RobotEstimate.x(end) > .15 && y+RobotEstimate.y(end) > .15)
-            executeTrajectory(x,y,th,robot,2);
-        else
-            continue;
-        end
-
-        t1 = tic;
-        while(toc(t1) < 10)
-           disp(thePose.getPoseVec());
-           LineMap.testLineMap(robot); 
-        end
-        thePose = pose(thePose.x + .10*cos(thePose.th),thePose.y + .10*sin(thePose.th),thePose.th);
-
-        disp(thePose.getPoseVec());
-        RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
-
         backUp(robot);
         robot.sendVelocity(0,0);    
     end
@@ -85,9 +76,7 @@ function backUp(robot)
     initialTh = RobotEstimate.th;
     robot.sendVelocity(-.1,-.1)
     pause(2);
-    disp(initialTh);
     while(abs(RobotEstimate.th-initialTh) < pi )
-        disp(RobotEstimate.th);
         robot.sendVelocity(.05,-.05);
         pause(.05);
     end

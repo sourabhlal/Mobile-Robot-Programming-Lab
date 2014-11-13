@@ -80,18 +80,21 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          end
          figure(1);
          hold on;
-         plot(Y,X);
+         plot(-X,-Y,'.');
          title('X vs Y')
  
      end
      
-     function [err, num, th, dist] = findLineCandidate(obj,middle,maxLen) 
+     function [avgE, err, num, th, dist] = findLineCandidate(obj,middle,maxLen) 
          % Find the longest sequence of pixels centered at pixel
          % â€œmiddleâ€? whose endpoints are separated by a length less 
          % than the provided maximum. Return the line fit error, the 
          % number of pixels participating, and the angle of 
          % the line relative to the sensor. 
- 
+         global theMap;
+         global thePose;
+         
+         ptsInModelFrame = [obj.xArray(middle) ; obj.yArray(middle) ; 1];
          dist = 0;
          num = 1;
          lineCandidate = middle;
@@ -108,6 +111,9 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
                  lineCandidate = cat(2,left,lineCandidate,right);
              end
             check = check+2;
+            ptsInModelFrame =[ptsInModelFrame, [obj.xArray(left) ; obj.yArray(left) ; 1]];
+            ptsInModelFrame =[ptsInModelFrame, [obj.xArray(right) ; obj.yArray(right) ; 1]];
+      
             
          end
          
@@ -132,6 +138,12 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          if th == 0
              err = 1000;
          end
+         
+         
+         
+         avgE = fitError(theMap,thePose,ptsInModelFrame,false);
+           
+         
      end 
      
      function num = numPixels(obj)

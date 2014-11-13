@@ -88,7 +88,7 @@ classdef lineMapLocalizer < handle
             worldPts = pose.bToA()*ptsInModelFrame;
             for i = 1:size(worldPts,2)
                 r2 = obj.closestSquaredDistanceToLines(worldPts(:,i));
-                if (sqrt(r2) > obj.maxError)
+                if (sqrt(r2) > obj.maxErr)
                     ids = [ids i];
                 end
             end
