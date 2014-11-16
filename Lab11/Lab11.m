@@ -25,7 +25,7 @@ function Lab11(robot)
             for i = 2:image.numPix
                [avgE, err, num, th, dist] = findLineCandidate(image,i,sailSize);
 
-               %disp(avgE);
+               disp(avgE);
                if(err < minError && num > 1 && dist > .08 && avgE > .5)
                   minError = err;
                   bestIndex = i;
