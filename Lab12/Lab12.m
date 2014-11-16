@@ -11,7 +11,7 @@ function Lab12(robot)
     
     %first near pick up pose
     xf1p = .3;
-    yf1p = .8;
+    yf1p = .7;
     thf1p = pi/2;
     %first drop off pose
     xf1d = .533;
@@ -19,7 +19,7 @@ function Lab12(robot)
     thf1d = -pi/2;
     %second near pick up pose
     xf2p = .6; 
-    yf2p = .8;
+    yf2p = .7;
     thf2p = pi/2;
     %second drop off pose
     xf2d = .683;
@@ -27,7 +27,7 @@ function Lab12(robot)
     thf2d = -pi/2;
     %third near pick up pose
     xf3p = .9;
-    yf3p = .8;
+    yf3p = .7;
     thf3p = pi/2;
     %third drop off pose
     xf3d = .833;
@@ -49,9 +49,9 @@ function Lab12(robot)
     Ttw = [cos(thf1d) -sin(thf1d) xf1d ; sin(thf1d) cos(thf1d) yf1d ; 0 0 1];
     Trw = [cos(thePose.th) -sin(thePose.th) thePose.x; sin(thePose.th) cos(thePose.th) thePose.y; 0 0 1];
     Ttr = inv(Trw) * Ttw;
-    executeTrajectory(Ttr(1,3),Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
+    executeTrajectory(Ttr(1,3)-.18,Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
     dropOff(robot);
-    backUp(robot);
+    reverse(robot);
     
     %get second object
     getNewPose(robot);
@@ -66,9 +66,9 @@ function Lab12(robot)
     Ttw = [cos(thf2d) -sin(thf2d) xf2d ; sin(thf2d) cos(thf2d) yf2d ; 0 0 1];
     Trw = [cos(thePose.th) -sin(thePose.th) thePose.x; sin(thePose.th) cos(thePose.th) thePose.y; 0 0 1];
     Ttr = inv(Trw) * Ttw;
-    executeTrajectory(Ttr(1,3),Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
+    executeTrajectory(Ttr(1,3)-.18,Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
     dropOff(robot);
-    backUp(robot);
+    reverse(robot);
     
     %get third object
     getNewPose(robot);
@@ -83,9 +83,9 @@ function Lab12(robot)
     Ttw = [cos(thf3d) -sin(thf3d) xf3d ; sin(thf3d) cos(thf3d) yf3d ; 0 0 1];
     Trw = [cos(thePose.th) -sin(thePose.th) thePose.x; sin(thePose.th) cos(thePose.th) thePose.y; 0 0 1];
     Ttr = inv(Trw) * Ttw;
-    executeTrajectory(Ttr(1,3),Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
+    executeTrajectory(Ttr(1,3)-.18,Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
     dropOff(robot);
-    backUp(robot);
+    reverse(robot);
     
     
     %backUp(robot);
@@ -95,9 +95,13 @@ end
 function pickUp(robot)
     robot.forksUp();
     pause(2);
+    robot.forksUp();
+    pause(2);
 end
 
 function dropOff(robot)
+    robot.forksDown();
+    pause(2);
     robot.forksDown();
     pause(2);
 end
@@ -113,13 +117,13 @@ function goToTarget(robot)
     
     removeLargeTheta(image,pi/6);
 
-    [minError, num, th, dist] = findLineCandidate(image,1,sailSize);
+    [minError, bestNum, th, dist] = findLineCandidate(image,1,sailSize);
     bestIndex = 1;
     for i = 2:image.numPix
        [err, num, th, dist] = findLineCandidate(image,i,sailSize);
 
-       if(err < minError && num > 1 && dist > .08 )
-          minError = err;
+       if(err < 1000 && num > bestNum && dist > .08 )
+          bestNum = num;
           bestIndex = i;
        end
     end
@@ -147,24 +151,37 @@ function goToTarget(robot)
     end
 
     % move
-    executeTrajectory(x,y,th,robot,2);
+    if(abs(th > pi/6))
+        pause(1);
+    end
+    executeTrajectory(x,y,th,robot,1);
    
 end
 
+function reverse(robot)
+    robot.sendVelocity(-.15,-.15);
+    pause(1.5);
+        
 
+    robot.sendVelocity(-.2,.2);
+    pause(.151);
+    robot.sendVelocity(-.2,.2);
+    
+    pause(5);
+    
+    robot.sendVelocity(0,0);
+end
 
 function backUp(robot)
-    global RobotEstimate ;
-    initialTh = RobotEstimate.th;
+
+    robot.sendVelocity(-.1,.1);
+    pause(.2);
+    robot.sendVelocity(-.1,.1);
     
-    while(abs(RobotEstimate.th-initialTh) < pi-.2 )
-        %disp(abs(RobotEstimate.th-initialTh));
-        disp(RobotEstimate.th);
-        robot.sendVelocity(-.08,.08);
-        pause(.1);
-    end
+    pause(5);
+    
     robot.sendVelocity(.15,.15);
-    pause(1.5);
+    pause(2);
     robot.sendVelocity(0,0);
 end
 

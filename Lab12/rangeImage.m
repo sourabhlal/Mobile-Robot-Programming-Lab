@@ -50,7 +50,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
      end
      
      function removeLargeTheta(obj, th)
-         v = find(obj.tArray < th & obj.tArray > -th);
+         v = find(obj.tArray < th | obj.tArray > 2*pi-th);
          obj.rArray = obj.rArray(v);
          obj.tArray = obj.tArray(v);
          obj.xArray = obj.xArray(v);
@@ -94,15 +94,13 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
  
      end
      
-     function [avgE, err, num, th, dist] = findLineCandidate(obj,middle,maxLen) 
+     function [ err, num, th, dist] = findLineCandidate(obj,middle,maxLen) 
          % Find the longest sequence of pixels centered at pixel
          % â€œmiddleâ€? whose endpoints are separated by a length less 
          % than the provided maximum. Return the line fit error, the 
          % number of pixels participating, and the angle of 
          % the line relative to the sensor. 
-         global theMap;
-         global thePose;
-         
+       
          ptsInModelFrame = [obj.xArray(middle) ; obj.yArray(middle) ; 1];
          dist = 0;
          num = 1;
@@ -111,7 +109,7 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          right = middle;
          err = 0;
          check = 1;
-         while dist <= maxLen && check < 15 
+         while dist <= maxLen && check < 100 
              left = dec(obj,left);
              right = inc(obj,right);
              dist = sqrt((obj.xArray(left)-obj.xArray(right))^2 + (obj.yArray(left)-obj.yArray(right))^2);
