@@ -61,18 +61,14 @@ classdef LineMap
         function makeMap()
             global theMap;
 
-            x1s = [0, 1.2];
-            y1s = zeros(1,length(x1s));
+            x1s = [0, 1.2, 1.2];
+            y1s = [0, 0, 0];
 
-            y2s = [1.2, 0];
-            x2s = zeros(1,length(y2s));
+            y2s = [1.2, 0, 1.2];
+            x2s = [0, 0, 1.2];
 
             lines_p1 = [x1s;y1s ];
             lines_p2 = [x2s;y2s ];
-
-        %     plot(x1s,y1s);
-        %     hold on;
-        %     plot(x2s,y2s);
 
             gain = 0.01;
             errThresh = 0.001;

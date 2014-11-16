@@ -49,6 +49,15 @@ classdef rangeImage < handle %rangeImage Stores a 1D range image and provides re
          obj.numPix = length(v);
      end
      
+     function removeLargeTheta(obj, th)
+         v = find(obj.tArray < th & obj.tArray > -th);
+         obj.rArray = obj.rArray(v);
+         obj.tArray = obj.tArray(v);
+         obj.xArray = obj.xArray(v);
+         obj.yArray = obj.yArray(v);
+         obj.numPix = length(v);
+     end
+     
      function plotRvsTh(obj, maxRange) 
          % plot the range image after removing all points exceeding 
          % maxRange
