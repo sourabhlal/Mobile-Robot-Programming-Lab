@@ -6,41 +6,41 @@ function Lab13(robot)
     RobotEstimate = estRobot(thePose.x,thePose.y,thePose.th,robot);
     
     LineMap.makeMap();
-    
-    backUp(robot);
-    getNewPose(robot);
-    pickUpY =1.65;
+    robot.forksDown();
+    backUp(robot,false);
+    %getNewPose(robot);
+    pickUpY =1.40;
     dropOffY = .30;
     
     %object 1
     pickUpPose = pose(.30,pickUpY,pi/2);
     dropOffPose = pose(.30,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 2
     pickUpPose = pose(.30*2,pickUpY,pi/2);
     dropOffPose = pose(.30*2,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 3
     pickUpPose = pose(.30*3,pickUpY,pi/2);
     dropOffPose = pose(.30*3,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 4
     pickUpPose = pose(.30*4,pickUpY,pi/2);
     dropOffPose = pose(.30*4,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 5 
     pickUpPose = pose(.30*5,pickUpY,pi/2);
     dropOffPose = pose(.30*5,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 6 
     pickUpPose = pose(.30*6,pickUpY,pi/2);
     dropOffPose = pose(.30*6,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,false);
     
     %object 7 (dont attempt)
     %pickUpPose = pose(.30*7,pickUpY,pi/2);
@@ -51,33 +51,34 @@ function Lab13(robot)
     %object 9 (side) (dont attempt)
     
     %object 10 (side) 
-    pickUpPose = pose(.3*6,.6,0);
+    pickUpPose = pose(.3*7,pickUpY,pi/2);
     dropOffPose = pose(.30*7,dropOffY,-pi/2);
-    getObject(pickUpPose,dropOffPose,robot);
+    getObject(pickUpPose,dropOffPose,robot,true);
     
     robot.sendVelocity(0,0);    
 end
 
 
-function getObject(pickUpPose,dropOffPose,robot)
+function getObject(pickUpPose,dropOffPose,robot,avoid)
     global thePose;
-    pauseTime = .1;
+    pauseTime = .01;
     
-    xf1p = pickUpPose.getPoseVec.x;
-    yf1p = pickUpPose.getPoseVec.y;
-    thf1p = pickUpPose.getPoseVec.th;
+    xf1p = pickUpPose.x;
+    yf1p = pickUpPose.y;
+    thf1p = pickUpPose.th;
     
-    xf1d = dropOffPose.getPoseVec.x;
-    yf1d = dropOffPose.getPoseVec.y;
-    thf1d = dropOffPose.getPoseVec.th;
+    xf1d = dropOffPose.x;
+    yf1d = dropOffPose.y;
+    thf1d = dropOffPose.th;
     
+    getNewPose(robot);
     Ttw = [cos(thf1p) -sin(thf1p) xf1p ; sin(thf1p) cos(thf1p) yf1p ; 0 0 1];
     Trw = [cos(thePose.th) -sin(thePose.th) thePose.x; sin(thePose.th) cos(thePose.th) thePose.y; 0 0 1];
     Ttr = inv(Trw) * Ttw;
     executeTrajectory(Ttr(1,3),Ttr(2,3),atan2(Ttr(2,1),Ttr(2,2)),robot,pauseTime); %get close to target
     goToTarget(robot); % scan and go to pickup pose
     pickUp(robot);
-    backUp(robot);
+    backUp(robot,avoid);
     getNewPose(robot);
     Ttw = [cos(thf1d) -sin(thf1d) xf1d ; sin(thf1d) cos(thf1d) yf1d ; 0 0 1];
     Trw = [cos(thePose.th) -sin(thePose.th) thePose.x; sin(thePose.th) cos(thePose.th) thePose.y; 0 0 1];
@@ -144,15 +145,17 @@ function goToTarget(robot)
     end
 
     % move
-    if(abs(th > pi/6))
-        pause(1);
-    end
+%     if(abs(th > pi/6))
+%         pause(1);
+%     end
     executeTrajectory(x,y,th,robot,1);
-   
+    robot.sendVelocity(.1,.1);
+    pause(1);
+    robot.sendVelocity(0,0);
 end
 
 function reverse(robot)
-    robot.sendVelocity(-.15,-.15);
+    robot.sendVelocity(-.2,-.2);
     pause(1.5);
         
 
@@ -160,21 +163,26 @@ function reverse(robot)
     pause(.151);
     robot.sendVelocity(-.2,.2);
     
-    pause(5);
+    pause(4);
     
     robot.sendVelocity(0,0);
 end
 
-function backUp(robot)
+function backUp(robot, avoid)
 
     robot.sendVelocity(-.1,.1);
-    pause(.2);
-    robot.sendVelocity(-.1,.1);
-    
-    pause(5);
-    
-    robot.sendVelocity(.15,.15);
-    pause(2);
+    if avoid == false
+        pause(.2);
+        robot.sendVelocity(-.1,.1);
+    end
+    pause(4);
+    if avoid == false
+        robot.sendVelocity(.2,.2);
+        pause(3);
+    else
+        robot.sendVelocity(.10,.2);
+        pause(3);
+    end
     robot.sendVelocity(0,0);
 end
 
@@ -194,103 +202,25 @@ end
 
 
 function executeTrajectory(xf,yf,thf,robot,pauseTime)
-    global thePose;
-    global RobotEstimate;
-
-    kpx = 0;
-    kdx = 0;%.1;
-
-    kppsi = 0;   
-    kdpsi = 0;%.01;
-
-    kpth = 0;   
-    kdth = 0;%.3;
 
     width = .235;
     curve = cubicSpiral.planTrajectory(xf,yf,thf,1);
-    planVelocities(curve,.20);
-    
-    for i = 1: length(curve.poseArray)
-       xPredict(i) = curve.poseArray(1,i);
-       yPredict(i) = curve.poseArray(2,i);
-       th = atan2(yPredict(i),xPredict(i));
-       Trg = [cos(th) -sin(th) xPredict(i) ; sin(th) cos(th) yPredict(i) ; 0 0 1];
-       Twr = [cos(thePose.th) -sin(thePose.th) thePose.x ; sin(thePose.th) cos(thePose.th) thePose.y ; 0 0 1];
-       Twg = Twr * Trg; 
-       xP(i) = Twg(1,3) ;
-       yP(i) = Twg(2,3) ;
-    end
-    figure(1)
-    plot(xP,yP);
-    hold on;
-    
-    prevDistRight = robot.encoders.data.right;
-    prevDistLeft = robot.encoders.data.left;
+    planVelocities(curve,.22);
     
     time = tic();
-    prevTime = 0;
+ 
     completionTime = curve.timeArray(end);
-    index=1;
-    th=0;
-    xActual(1) = 0;
-    yActual(1) = 0;  
+
     while toc(time) < (completionTime + pauseTime)
         currTime = toc(time);
         if currTime < completionTime
             V = getVAtTime(curve,currTime);
-            w = getwAtTime(curve,currTime);
-            targetPose = getPoseAtTime(curve,currTime);
+            w = getwAtTime(curve,currTime);  
         else
             V = 0;
             w = 0;
-            targetPose = getPoseAtTime(curve,completionTime);
         end
-        dt = currTime - prevTime;
-        
-        currDistRight = robot.encoders.data.right;
-        dSr = (currDistRight - prevDistRight)/1000; 
-        prevDistRight = currDistRight;
-
-        currDistLeft = robot.encoders.data.left;
-        dSl = (currDistLeft - prevDistLeft)/1000; 
-        prevDistLeft = currDistLeft;
-
-        dth = (dSr - dSl)/width;
-        dS = (dSr+dSl)/2;
-
-        th = th + dth/2;
-        xActual(index+1) = xActual(index) + (dS/dt)*cos(th)*dt;
-        yActual(index+1) = yActual(index) + (dS/dt)*sin(th)*dt;
-        th = th + dth/2;
-        
-        Twb = inv([cos(th) -sin(th) xActual(index+1) ; sin(th) cos(th) yActual(index+1) ; 0 0 1]);
-        raw = [targetPose(1,1) ; targetPose(2,1) ; 1];
-        rab = Twb*raw;
-        xError(index+1) = rab(1,1);
-        yError(index+1) = rab(2,1);
-
-        %calc angle between robot and predicted pose
-        Taw = [cos(targetPose(3,1)) -sin(targetPose(3,1)) targetPose(1,1) ; sin(targetPose(3,1)) cos(targetPose(3,1)) targetPose(2,1) ; 0 0 1];
-        Tab = Twb*Taw;
-        thError(index+1) = atan2(Tab(2,1),Tab(1,1));
-        
-        psiError(index+1) = atan2(yError(index+1),xError(index+1));
-        
-        rabx_dt = (xError(index+1)-xError(index))*dt; 
-        dpsi_dt = (psiError(index+1)-psiError(index))*dt;
-        dth_dt = (thError(index+1)-thError(index))*dt;
-           
-        mag = 10*sqrt(xError(index+1)*xError(index+1)+yError(index+1)*yError(index+1));
-        kppsi_mag = min(kppsi/mag,3*kppsi);
-        kdpsi_mag = min(kdpsi/mag,3*kdpsi);
-        
-        V = V + kpx*xError(index+1) + kdx*rabx_dt;
-        if xError(index+1) > 0 
-           w = w + kppsi_mag*psiError(index+1) + kdpsi_mag*dpsi_dt + kpth*thError(index+1) + kdth*dth_dt;
-        else
-           w = w + kpth*thError(index+1) + kdth*dth_dt;    
-        end
-        
+       
         vr = V + (width/2)*w;
         vl = V - (width/2)*w; 
         
@@ -301,19 +231,8 @@ function executeTrajectory(xf,yf,thf,robot,pauseTime)
 
         robot.sendVelocity(vl,vr);
                 
-        index = index+1;
-        prevTime = currTime;
-
-        if(RobotEstimate.x(end) < 2 && RobotEstimate.x(end) > 0 ...
-            && RobotEstimate.y(end) < 2 && RobotEstimate.y(end) > 0)
-            plot(RobotEstimate.x(end),RobotEstimate.y(end),'.r');
-        end
-        axis([0 2 0 2]);
-        axis equal;
-        hold on;
-        grid on;
-        
-        pause(.1);
+     
+        pause(.05);
     end
     
     

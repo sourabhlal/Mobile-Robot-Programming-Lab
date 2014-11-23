@@ -31,15 +31,15 @@ classdef LineMap
             %hold on
             testPose = pose(robotModel.senToWorld(thePose));
 
-            worldLidarPts = robotModel.senToWorld(thePose)*modelPts;
-            worldLidarPts = [1 0 .1; 0 1 0; 0 0 1]*worldLidarPts;
+            %worldLidarPts = robotModel.senToWorld(thePose)*modelPts;
+            %worldLidarPts = [1 0 .1; 0 1 0; 0 0 1]*worldLidarPts;
             %plot(worldLidarPts(1,:),worldLidarPts(2,:));
             %plot( x1s,y1s,'r');
             %plot(x2s,y2s,'r');
 
 
-            graphPose =  [cos(testPose.th) -sin(testPose.th) testPose.x; sin(testPose.th) cos(testPose.th) testPose.y; 0 0 1] * robotModel.bodyGraph() ;
-            graphPose = [1 0 .2; 0 1 0; 0 0 1]*graphPose;
+            %graphPose =  [cos(testPose.th) -sin(testPose.th) testPose.x; sin(testPose.th) cos(testPose.th) testPose.y; 0 0 1] * robotModel.bodyGraph() ;
+            %graphPose = [1 0 .2; 0 1 0; 0 0 1]*graphPose;
             %plot(graphPose(1,:),graphPose(2,:),'g');
             %axis([-2 2 -2 2]);
             %grid on;
